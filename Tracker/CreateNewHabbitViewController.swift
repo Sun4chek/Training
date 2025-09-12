@@ -15,6 +15,7 @@ class CreateNewHabbitViewController: UIViewController {
         button.backgroundColor = .systemBlue
         button.tintColor = .white
         button.addTarget(self, action: #selector(createHabbit), for: .touchUpInside)
+        button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -36,12 +37,15 @@ class CreateNewHabbitViewController: UIViewController {
         NSLayoutConstraint.activate([
             habbitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             habbitButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            habbitButton.widthAnchor.constraint(equalToConstant: 200),
-            habbitButton.heightAnchor.constraint(equalToConstant: 50)
+            habbitButton.widthAnchor.constraint(equalToConstant: 335),
+            habbitButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
     @objc func createHabbit() {
+        let createHabitVC = HabbitRegisterViewController()
+                navigationController?.pushViewController(createHabitVC, animated: true)
         
+
     }
 }
