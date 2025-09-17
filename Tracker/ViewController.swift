@@ -17,41 +17,40 @@ class MainViewController: UIViewController, UISearchBarDelegate {
 
     
     private func setupNavigationBar() {
+        let plusButton = UIButton(type: .system)
+        plusButton.setImage(UIImage(named: "Addtracker"), for: .normal)
+        plusButton.tintColor = .black
+        plusButton.addTarget(self, action: #selector(plusTapped), for: .touchUpInside)
+        plusButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: -16, bottom: 0, right: 0)
 
-        let plusButton = UIBarButtonItem(
-            image: UIImage(named: "Addtracker"),
-            style: .plain,
-            target: self,
-            action: #selector(plusTapped)
-        )
         
-        plusButton.customView?.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6).isActive = true
+        // Констрейнты размера
+        NSLayoutConstraint.activate([
+            
+            plusButton.widthAnchor.constraint(equalToConstant: 42),
+            plusButton.heightAnchor.constraint(equalToConstant: 42)
+        ])
+        
+        let plusItem = UIBarButtonItem(customView: plusButton)
+        
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
-        datePicker.preferredDatePickerStyle = .compact// компактный стиль
+        datePicker.preferredDatePickerStyle = .compact
         datePicker.locale = Locale(identifier: "ru_RU")
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
         
-        let currentDate = Date()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yy"
-        datePicker.date = currentDate
-        
         let datePickerItem = UIBarButtonItem(customView: datePicker)
         
-        
+        navigationItem.leftBarButtonItem = plusItem
         navigationItem.rightBarButtonItem = datePickerItem
-        navigationItem.leftBarButtonItem = plusButton
-        
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.navigationBar.tintColor = .black
     }
+
     
     private lazy var titlelabel : UILabel = {
         let label = UILabel()
         label.text = "Трекеры"
-        label.font = .systemFont(ofSize: 34, weight: .bold)
-        label.textColor = .black
+        label.font = UIFont(name: "SFProText-Bold", size: 34)
+        label.textColor = .ypBlack
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -107,21 +106,26 @@ class MainViewController: UIViewController, UISearchBarDelegate {
         let label = UILabel()
         label.text = "Что будем отслеживать?"
         label.textColor = .black
-        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.font = UIFont(name: "SFProText-Medium", size: 12)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    private lazy var collectionView : UICollectionView = {
-        let collectionView = UICollectionView(
-            frame: .zero,
-            collectionViewLayout: UICollectionViewFlowLayout()
-        )
-        collectionView.register(TrackerCollectionViewCell.self , forCellWithReuseIdentifier: trackerCellId)
-        collectionView.backgroundColor = .clear
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.sectionInset = .zero
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 12
+        layout.headerReferenceSize = CGSize(width: UIScreen.main.bounds.width, height: 44) // дефолтный размер заголовка
 
-        return collectionView
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.register(TrackerCollectionViewCell.self, forCellWithReuseIdentifier: trackerCellId)
+        cv.register(TrackerSectionHeader.self,
+                    forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                    withReuseIdentifier: TrackerSectionHeader.reuseId)
+        cv.backgroundColor = .clear
+        return cv
     }()
     
     func reloadData() {
@@ -132,7 +136,7 @@ class MainViewController: UIViewController, UISearchBarDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        categories = [TrackerCategory(name: "Важное", trackers: [])]
 
         searchBar.delegate = self
         
@@ -226,7 +230,7 @@ class MainViewController: UIViewController, UISearchBarDelegate {
 
         NSLayoutConstraint.activate([
             titlelabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titlelabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 90 ),
+            titlelabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 91 ),
             titlelabel.widthAnchor.constraint(equalToConstant: 254),
             titlelabel.heightAnchor.constraint(equalToConstant: 41)
         ])
@@ -247,6 +251,13 @@ class MainViewController: UIViewController, UISearchBarDelegate {
         } else {
             return []
         }
+    }
+    
+    private func filteredTrackers(for category: TrackerCategory) -> [Tracker] {
+        let targetDate = selectDate ?? Date()
+        let currentDayString = transformDateInToWekkDay(targetDate)
+        guard let currentDay = Weekdays.fromString(currentDayString) else { return [] }
+        return category.trackers.filter { $0.schedule.contains(currentDay) }
     }
     
     @objc private func dateChanged() {
@@ -272,8 +283,8 @@ class MainViewController: UIViewController, UISearchBarDelegate {
     @objc private func plusTapped() {
         
         print("нажали плюс")
-        let newVC = HabbitRegisterViewController()
-        newVC.delegate = self
+        let newVC = CreateNewHabbitViewController()
+        newVC.delegate = self 
         let navController = UINavigationController(rootViewController: newVC)
         newVC.modalPresentationStyle = .fullScreen
         
@@ -298,24 +309,54 @@ class MainViewController: UIViewController, UISearchBarDelegate {
     }
 }
 
-extension MainViewController : UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("Всего трекеров:", treckers.count, "подходит по дню:")
-        return getFilteredTrackersForSelectedDate().count
+extension MainViewController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        let trackersForDate = getFilteredTrackersForSelectedDate()
+        return trackersForDate.isEmpty ? 0 : categories.count
     }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let category = categories[section]
+        return filteredTrackers(for: category).count
+    }
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: trackerCellId, for: indexPath) as! TrackerCollectionViewCell
-               
-               let filteredTrackers = getFilteredTrackersForSelectedDate()
-               let tracker = filteredTrackers[indexPath.item]
-               let selectedDate = selectDate ?? Date()
-               
-               cell.delegate = self
-               cell.configure(with: tracker, index: indexPath.row, chooseDate: selectedDate)
-               return cell
-           }
-    
+
+        let category = categories[indexPath.section]
+        let filtered = filteredTrackers(for: category)
+
+        // defensive: если индекс вдруг вне диапазона — возвращаем пустую ячейку
+        guard indexPath.item < filtered.count else { return cell }
+
+        let tracker = filtered[indexPath.item]
+        let selectedDate = selectDate ?? Date()
+
+        let isCompleted = completedTrackers.contains { record in
+            record.id == tracker.id && Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
+        }
+       
+        let completedDays = completedTrackers.filter { $0.id == tracker.id }.count
+        
+        cell.delegate = self
+        cell.configure(with: tracker, index: indexPath.item, isCompleted: isCompleted, selectDate: selectedDate,completedDays: completedDays)
+        return cell
+    }
+
+    // Заголовок секции
+    func collectionView(_ collectionView: UICollectionView,
+                        viewForSupplementaryElementOfKind kind: String,
+                        at indexPath: IndexPath) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
+        let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
+                                                                     withReuseIdentifier: TrackerSectionHeader.reuseId,
+                                                                     for: indexPath) as! TrackerSectionHeader
+        header.titleLabel.text = categories[indexPath.section].name
+        header.titleLabel.font = UIFont(name: "SFProText-Bold", size: 16)
+        return header
+    }
 }
+
 
 extension MainViewController : UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -338,33 +379,44 @@ extension MainViewController : UICollectionViewDelegateFlowLayout {
     ) -> CGFloat {
         return 0
     }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        referenceSizeForHeaderInSection section: Int) -> CGSize {
+        // верни ноль, если заголовок не нужен; сейчас вернём высоту 44
+        return CGSize(width: collectionView.bounds.width, height: 44)
+    }
 }
 
 extension MainViewController: HabbitRegisterViewControllerDelegate {
     func didCreateNewTracker(_ tracker: Tracker) {
         print("тот самый делегат отработал и добавил новый трекер")
+
+        if categories.isEmpty {
+            categories = [TrackerCategory(name: "Важное", trackers: [])]
+        }
+        categories[0].trackers.append(tracker) // добавляем в "Важное"
+        treckers.append(tracker) // можно оставить для совместимости, но основная работа - с categories
+
         
-        // Добавляем трекер в массив
-        treckers.append(tracker)
-        
-        // Проверяем, должен ли трекер отображаться для текущей даты
-        let shouldShowTracker = getFilteredTrackersForSelectedDate().contains(where: { $0.id == tracker.id })
-        
-        if shouldShowTracker {
-            hideEmptyState()
-            // Если трекер должен отображаться, добавляем с анимацией
-            collectionView.performBatchUpdates {
-                let newIndexPath = IndexPath(item: getFilteredTrackersForSelectedDate().count - 1, section: 0)
-                collectionView.insertItems(at: [newIndexPath])
-            }
+        let filteredTrackers = getFilteredTrackersForSelectedDate()
+        if filteredTrackers.isEmpty {
+            showdemo() // показываем приветствие, если нет подходящих трекеров
+        } else {
+            hideEmptyState() // скрываем приветствие, если есть подходящие трекеры
         }
         
-     
+        collectionView.reloadData()
     }
+
+
 }
 
+
 extension MainViewController: TrackerCollectionViewCellDelegate {
-    func didTapCompleteButton(for tracker: Tracker, index: Int, on date: Date) {
+
+    
+    func didTapCompleteButton(for tracker: Tracker,in date : Date, isCompleted : Bool) {
         print("Трекер обновлен для даты: \(date)")
         
         // Находим трекер в исходном массиве по ID
@@ -374,21 +426,20 @@ extension MainViewController: TrackerCollectionViewCellDelegate {
             // Переключаем выполнение для КОНКРЕТНОЙ ДАТЫ
             let calendar = Calendar.current
             
-            if let existingRecordIndex = updatedTracker.records.firstIndex(where: {
-                calendar.isDate($0.date, inSameDayAs: date)
+            
+            
+            if let existingIndex = completedTrackers.firstIndex(where: {
+                $0.id == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: date)
             }) {
-                // Удаляем запись если уже выполнено в этот день
-                updatedTracker.records.remove(at: existingRecordIndex)
+                // Удаляем запись, если уже выполнено в этот день
+                completedTrackers.remove(at: existingIndex)
             } else {
-                // Добавляем запись если не выполнено
+                // Добавляем запись, если ещё не выполнено
                 let newRecord = TrackerRecord(id: tracker.id, date: date)
-                updatedTracker.records.append(newRecord)
+                completedTrackers.append(newRecord)
             }
             
-            // Обновляем массив
-            treckers[originalIndex] = updatedTracker
             
-            // ОБНОВЛЯЕМ ТОЛЬКО КОНКРЕТНУЮ ЯЧЕЙКУ с анимацией
             if let filteredIndex = getFilteredTrackersForSelectedDate().firstIndex(where: { $0.id == tracker.id }) {
                 let indexPath = IndexPath(item: filteredIndex, section: 0)
                 

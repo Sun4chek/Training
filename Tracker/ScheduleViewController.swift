@@ -95,10 +95,10 @@ final class ScheduleViewController: UIViewController {
     private lazy var okButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Готово", for: .normal)
-        button.backgroundColor = .systemBlue  // Стиль: синий фон
+        button.backgroundColor = .ypBlack 
         button.setTitleColor(.white, for: .normal)  // Белый текст
         button.layer.cornerRadius = 16
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
         button.addTarget(self, action: #selector(okButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button

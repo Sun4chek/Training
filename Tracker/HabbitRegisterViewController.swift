@@ -25,6 +25,7 @@ protocol HabbitRegisterViewControllerDelegate: AnyObject {
 
 class HabbitRegisterViewController: UIViewController {
         
+    private var selectedCategory: String = "Важное"
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     weak var delegate: HabbitRegisterViewControllerDelegate?
@@ -36,18 +37,32 @@ class HabbitRegisterViewController: UIViewController {
     private var selectedDays: [Weekdays] = []
     
     private var options: [SettingsOption] = [
-        SettingsOption(title: "Категория", detail: nil, accessory: .chevron),
+        SettingsOption(title: "Категория", detail: "Важное", accessory: .chevron),
         SettingsOption(title: "Расписание", detail: nil, accessory: .chevron,selectedDays: [])
     ]
     
+    private let warningLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont(name: "SFProText-Regular", size: 17)
+        label.text = "Ограничение 38 символов"
+        label.textColor = .red
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true // скрыт по умолчанию
+        return label
+    }()
+    
     private let nameTextField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "Учиться делать iOS-приложения"
-        tf.font = UIFont.systemFont(ofSize: 17)
+        tf.placeholder = "Введите название трекера"
+        tf.font = UIFont(name: "SFProText-Regular", size: 17)
         tf.backgroundColor = .secondarySystemBackground
         tf.layer.cornerRadius = 16
         tf.clearButtonMode = .whileEditing
-        tf.textAlignment = .center
+        tf.textAlignment = .left
+        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
+        tf.leftViewMode = .always
+        
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }()
@@ -69,27 +84,29 @@ class HabbitRegisterViewController: UIViewController {
     
     private var cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отмена", for: .normal)
+        button.setTitle("Отменить", for: .normal)
         button.setTitleColor(.systemRed, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
         button.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         button.backgroundColor = .clear
         button.layer.cornerRadius = 16
         button.layer.borderWidth = 1
            button.layer.borderColor = UIColor.systemRed.cgColor
-        button.heightAnchor.constraint(equalToConstant: 75).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 166).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 60).isActive = true
         return button
     }()
     
     private var createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Создать", for: .normal)
-        button.setTitleColor(.systemGray, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        button.backgroundColor = .systemGray6
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
+        button.backgroundColor = .createBtnNA
         button.layer.cornerRadius = 16
         button.isEnabled = false
-        button.heightAnchor.constraint(equalToConstant: 75).isActive = true
+        button.widthAnchor.constraint(equalToConstant: 166).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
         button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         return button
@@ -125,7 +142,7 @@ class HabbitRegisterViewController: UIViewController {
         
         
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Создание привычки"
+        navigationItem.title = "Новая привычка"
         navigationItem.hidesBackButton = true
         nameTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         setupUI()
@@ -191,9 +208,13 @@ class HabbitRegisterViewController: UIViewController {
 
         // Добавляем сабвью внутрь contentView
         contentView.addSubview(nameTextField)
+        contentView.addSubview(warningLabel)
         contentView.addSubview(scheduleOrCategoryTableView)
         contentView.addSubview(stack)
 
+        
+    
+        
         // Констрейнты для текстового поля
         NSLayoutConstraint.activate([
             nameTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
@@ -201,6 +222,12 @@ class HabbitRegisterViewController: UIViewController {
             nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             nameTextField.heightAnchor.constraint(equalToConstant: 75)
         ])
+        
+        NSLayoutConstraint.activate([
+            warningLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
+            warningLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
+        ])
+        
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: scheduleOrCategoryTableView.bottomAnchor, constant: 24),
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 4),
@@ -216,7 +243,7 @@ class HabbitRegisterViewController: UIViewController {
         tableViewHeightConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
-            scheduleOrCategoryTableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
+            scheduleOrCategoryTableView.topAnchor.constraint(equalTo: warningLabel.bottomAnchor, constant: 24),
             scheduleOrCategoryTableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             scheduleOrCategoryTableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
            
@@ -241,14 +268,13 @@ class HabbitRegisterViewController: UIViewController {
     
     @objc private func createButtonTapped() {
         if let habitTitle = nameTextField.text {
-            let newTracker = Tracker(
-               
-                id: UUID(),
-                name: habitTitle,
-                schedule: selectedDays,
-                createDay : Date()
-                
-            )
+   
+            
+            let newTracker = Tracker(id: UUID(),
+                                     name: habitTitle,
+                                     color: .ypBlue,
+                                     emoji: "",
+                                     schedule: selectedDays)
             delegate?.didCreateNewTracker(newTracker)
             
             print("новый трекер готов")
@@ -336,7 +362,27 @@ extension HabbitRegisterViewController: ScheduleViewControllerDelegate {
 extension HabbitRegisterViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         // Скрываем клавиатуру при нажатии на кнопку "Готово"
+        
+        
         textField.resignFirstResponder()
         return true
     }
+    
+    func textField(_ textField: UITextField,
+                      shouldChangeCharactersIn range: NSRange,
+                      replacementString string: String) -> Bool {
+           guard let currentText = textField.text as NSString? else { return true }
+           let newText = currentText.replacingCharacters(in: range, with: string)
+        
+            let maxLength: Int = 38
+        
+           if newText.count > maxLength {
+               warningLabel.isHidden = false
+               
+           } else {
+               warningLabel.isHidden = true
+           }
+           
+        return newText.count <= maxLength // если хочешь запретить ввод после 38 символов → return newText.count <= maxLength
+       }
 }

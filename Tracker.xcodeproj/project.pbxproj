@@ -30,6 +30,42 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2B0543282E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Fonts/SFProText-Bold.ttf",
+				"Fonts/SFProText-BoldItalic.ttf",
+				"Fonts/SFProText-Heavy.ttf",
+				"Fonts/SFProText-HeavyItalic.ttf",
+				"Fonts/SFProText-Light.ttf",
+				"Fonts/SFProText-LightItalic.ttf",
+				"Fonts/SFProText-Medium.ttf",
+				"Fonts/SFProText-MediumItalic.ttf",
+				"Fonts/SFProText-Regular.ttf",
+				"Fonts/SFProText-RegularItalic.ttf",
+				"Fonts/SFProText-Semibold.ttf",
+				"Fonts/SFProText-SemiboldItalic.ttf",
+			);
+			target = 2B7FF75D2E5F716200B7F51F /* TrackerTests */;
+		};
+		2B0543292E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Fonts/SFProText-Bold.ttf",
+				"Fonts/SFProText-BoldItalic.ttf",
+				"Fonts/SFProText-Heavy.ttf",
+				"Fonts/SFProText-HeavyItalic.ttf",
+				"Fonts/SFProText-Light.ttf",
+				"Fonts/SFProText-LightItalic.ttf",
+				"Fonts/SFProText-Medium.ttf",
+				"Fonts/SFProText-MediumItalic.ttf",
+				"Fonts/SFProText-Regular.ttf",
+				"Fonts/SFProText-RegularItalic.ttf",
+				"Fonts/SFProText-Semibold.ttf",
+				"Fonts/SFProText-SemiboldItalic.ttf",
+			);
+			target = 2B7FF7672E5F716200B7F51F /* TrackerUITests */;
+		};
 		2B7FF7702E5F716200B7F51F /* Exceptions for "Tracker" folder in "Tracker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -44,6 +80,8 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				2B7FF7702E5F716200B7F51F /* Exceptions for "Tracker" folder in "Tracker" target */,
+				2B0543282E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerTests" target */,
+				2B0543292E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerUITests" target */,
 			);
 			path = Tracker;
 			sourceTree = "<group>";

@@ -7,8 +7,9 @@
 import UIKit
 
 protocol TrackerCollectionViewCellDelegate: AnyObject {
-    func didTapCompleteButton(for tracker: Tracker, index: Int, on date: Date)
+    func didTapCompleteButton(for tracker: Tracker,in date : Date, isCompleted : Bool)
 }
+
 
 final class TrackerCollectionViewCell : UICollectionViewCell {
     
@@ -41,12 +42,12 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
             imageView.translatesAutoresizingMaskIntoConstraints = false
             return imageView
         }()
-
+ 
         let titleLabel: UILabel = {
             let label = UILabel()
             label.textColor = .white
             
-            label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+            label.font = UIFont(name: "SFProText-Medium", size: 12)
             label.translatesAutoresizingMaskIntoConstraints = false
             return label
         }()
@@ -54,7 +55,7 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
         let daysLabel: UILabel = {
             let label = UILabel()
             label.textColor = .black
-            label.font = .systemFont(ofSize: 12)
+            label.font = UIFont(name: "SFProText-Medium", size: 12)
             label.translatesAutoresizingMaskIntoConstraints = false
             return label
         }()
@@ -135,21 +136,30 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
         }
 
         // Метод для конфигурации
-    func configure(with tracker: Tracker, index: Int, chooseDate: Date) {
+    func configure(with tracker: Tracker, index: Int, isCompleted: Bool, selectDate: Date,completedDays: Int) {
         self.tracker = tracker
         self.idx = index
-        self.chooseDate = chooseDate
+        self.isCompleted = isCompleted        // <- обязательно сохраняем
+        self.chooseDate = selectDate
+
+        updateButtonAppearance()
+        titleLabel.text = tracker.name
+        avatarImageView.image = UIImage(named: "crySmile")
         
-        let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
-        let calendar = Calendar.current
-        
-        // Проверяем выполнение для КОНКРЕТНОЙ ДАТЫ
-        let isCompletedOnSelectedDate = tracker.records.contains { record in
-            calendar.isDate(record.date, inSameDayAs: chooseDate)
+        daysLabel.text = "\(completedDays) \(pluralizedDays(completedDays))"
+    }
+    
+    
+    private func pluralizedDays(_ count: Int) -> String {
+        switch count % 10 {
+        case 1 where count % 100 != 11: return "день"
+        case 2...4 where !(12...14).contains(count % 100): return "дня"
+        default: return "дней"
         }
-        
-        // Настраиваем кнопку
-        if isCompletedOnSelectedDate {
+    }
+    private func updateButtonAppearance() {
+        let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
+        if isCompleted {
             let checkImage = UIImage(systemName: "checkmark", withConfiguration: config)
             addButton.setImage(checkImage, for: .normal)
             addButton.backgroundColor = UIColor(named: "ypBlue")?.withAlphaComponent(0.3)
@@ -158,30 +168,18 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
             addButton.setImage(plusImage, for: .normal)
             addButton.backgroundColor = UIColor(named: "ypBlue")
         }
-        
-        // Блокируем кнопку если дата в будущем
+        // блокирование кнопки для будущих дат:
         let isFutureDate = chooseDate > Date()
         addButton.isEnabled = !isFutureDate
         addButton.alpha = isFutureDate ? 0.5 : 1.0
-        
-        // Обновляем счетчик дней
-        if tracker.daysCount % 10 == 1 {
-            daysLabel.text = "\(tracker.daysCount) день"
-        } else if tracker.daysCount % 10 >= 2 && tracker.daysCount % 10 <= 4 {
-            daysLabel.text = "\(tracker.daysCount) дня"
-        } else {
-            daysLabel.text = "\(tracker.daysCount) дней"
-        }
-        
-        titleLabel.text = tracker.name
-        avatarImageView.image = UIImage(named: "crySmile")
     }
+
     
     @objc func trackerComplete() {
         guard let tracker = tracker else { return }
-        
-        // Передаем выбранную дату делегату
-        delegate?.didTapCompleteButton(for: tracker, index: idx, on: chooseDate)
+        self.isCompleted.toggle()
+        updateButtonAppearance()                                    // сразу обновляем UI
+        delegate?.didTapCompleteButton(for: tracker, in: chooseDate, isCompleted: isCompleted)
     }
 
 }

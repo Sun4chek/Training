@@ -9,10 +9,13 @@ import UIKit
 
 class CreateNewHabbitViewController: UIViewController {
     
+    weak var delegate: HabbitRegisterViewControllerDelegate?
+    
     private lazy var habbitButton: UIButton = {
         let button = UIButton()
         button.setTitle("Привычка", for: .normal)
-        button.backgroundColor = .systemBlue
+        button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
+        button.backgroundColor = UIColor(named : "ypBlack")
         button.tintColor = .white
         button.addTarget(self, action: #selector(createHabbit), for: .touchUpInside)
         button.layer.cornerRadius = 16
@@ -24,6 +27,8 @@ class CreateNewHabbitViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        navigationItem.title = "Создание трекера"
         
         setupUI()
     }
@@ -31,7 +36,7 @@ class CreateNewHabbitViewController: UIViewController {
     
     
     func setupUI() {
-        view.backgroundColor = UIColor(named : "ypGrey")
+        
         view.addSubview(habbitButton)
         
         NSLayoutConstraint.activate([
@@ -44,6 +49,7 @@ class CreateNewHabbitViewController: UIViewController {
     
     @objc func createHabbit() {
         let createHabitVC = HabbitRegisterViewController()
+        createHabitVC.delegate = self.delegate
                 navigationController?.pushViewController(createHabitVC, animated: true)
         
 

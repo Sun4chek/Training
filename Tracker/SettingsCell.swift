@@ -31,8 +31,8 @@ class SettingsCell: UITableViewCell {
 
     private func setupUI() {
         selectionStyle = .default
-        titleLabel.font = UIFont.systemFont(ofSize: 17)
-        detailLabel.font = UIFont.systemFont(ofSize: 15)
+        titleLabel.font = UIFont(name: "SFProText-Regular", size: 17)
+        detailLabel.font = UIFont(name: "SFProText-Regular", size: 17)
         detailLabel.textColor = .gray
         detailLabel.isHidden = true
         
