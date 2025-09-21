@@ -24,6 +24,10 @@ protocol HabbitRegisterViewControllerDelegate: AnyObject {
 // MARK: - Контроллер
 
 class HabbitRegisterViewController: UIViewController {
+    
+    
+    let emojiSet  :  [String] = []
+    let colors : [String] = []
         
     private var selectedCategory: String = "Важное"
     private let scrollView = UIScrollView()
@@ -82,7 +86,7 @@ class HabbitRegisterViewController: UIViewController {
         return table
     }()
     
-    private var cancelButton: UIButton = {
+    private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Отменить", for: .normal)
         button.setTitleColor(.systemRed, for: .normal)
@@ -97,7 +101,7 @@ class HabbitRegisterViewController: UIViewController {
         return button
     }()
     
-    private var createButton: UIButton = {
+    private lazy var createButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Создать", for: .normal)
         button.setTitleColor(.white, for: .normal)
@@ -111,6 +115,22 @@ class HabbitRegisterViewController: UIViewController {
         button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         return button
     }()
+    
+    
+    
+//    private let emojiAndColorCollectionView: UICollectionView = {
+//        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+//        collectionView.register(TrackerCreateCell.self, forCellWithReuseIdentifier: "TrackerCreateCell")
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        return collectionView
+//    }()
 
     private func updateCreateButtonState() {
         // Проверяем: текст есть и выбраны дни
@@ -127,6 +147,18 @@ class HabbitRegisterViewController: UIViewController {
             createButton.setTitleColor(.systemGray, for: .normal)
         }
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -135,6 +167,8 @@ class HabbitRegisterViewController: UIViewController {
         nameTextField.returnKeyType = .done
         scheduleOrCategoryTableView.dataSource = self
         scheduleOrCategoryTableView.delegate = self
+//        emojiAndColorCollectionView.dataSource = self
+//        emojiAndColorCollectionView.delegate = self
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
             tapGesture.cancelsTouchesInView = false
@@ -386,3 +420,65 @@ extension HabbitRegisterViewController: UITextFieldDelegate {
         return newText.count <= maxLength // если хочешь запретить ввод после 38 символов → return newText.count <= maxLength
        }
 }
+//
+//extension HabbitRegisterViewController : UICollectionViewDataSource {
+//    
+//
+//    
+//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+//        if section == 0 {
+//            return emojiSet.count
+//        } else {
+//            return colors.count
+//        }
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCreateCell", for: indexPath) as! TrackerCreateCell
+//        
+//        if indexPath.section == 0 {
+//            cell.config(type: .image, name : emojiSet[indexPath.row] )
+//        } else {
+//            cell.config(type: .color, name : colors[indexPath.row] )
+//        }
+//
+//        return cell
+//    }
+//    
+//    
+//}
+
+//
+//extension HabbitRegisterViewController: UICollectionViewDelegateFlowLayout {
+//    
+//    func numberOfSections(in collectionView: UICollectionView) -> Int {
+//        return 2 // секция 0 = Emoji, секция 1 = Цвета
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+//        return CGSize(width: 52, height: 52)
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        insetForSectionAt section: Int) -> UIEdgeInsets {
+//        return UIEdgeInsets(top: 24, left: 18, bottom: 40, right: 18)
+//    }
+//    
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+//        return 0 // ячейка строго под ячейкой
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+//        return 5 // отступ между ячейками по горизонтали
+//    }
+//}
+
+
+

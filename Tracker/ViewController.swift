@@ -307,6 +307,33 @@ class MainViewController: UIViewController, UISearchBarDelegate {
         formatter.dateFormat = "EEEE"
         return formatter.string(from: date)
     }
+    
+    private func addTracker(_ tracker: Tracker, to categoryName: String) {
+        if let index = categories.firstIndex(where: { $0.name == categoryName }) {
+            let oldCategory = categories[index]
+            let updatedCategory = TrackerCategory(
+                name: oldCategory.name,
+                trackers: oldCategory.trackers + [tracker]
+            )
+            categories[index] = updatedCategory
+        } else {
+            // если категории нет — создаём новую
+            let newCategory = TrackerCategory(name: categoryName, trackers: [tracker])
+            categories.append(newCategory)
+        }
+    }
+
+    private func removeTracker(_ tracker: Tracker, from categoryName: String) {
+        if let index = categories.firstIndex(where: { $0.name == categoryName }) {
+            let oldCategory = categories[index]
+            let updatedCategory = TrackerCategory(
+                name: oldCategory.name,
+                trackers: oldCategory.trackers.filter { $0.id != tracker.id }
+            )
+            categories[index] = updatedCategory
+        }
+    }
+
 }
 
 extension MainViewController: UICollectionViewDataSource {
@@ -390,27 +417,24 @@ extension MainViewController : UICollectionViewDelegateFlowLayout {
 
 extension MainViewController: HabbitRegisterViewControllerDelegate {
     func didCreateNewTracker(_ tracker: Tracker) {
-        print("тот самый делегат отработал и добавил новый трекер")
+        print("Создан новый трекер: \(tracker.name)")
 
-        if categories.isEmpty {
-            categories = [TrackerCategory(name: "Важное", trackers: [])]
-        }
-        categories[0].trackers.append(tracker) // добавляем в "Важное"
-        treckers.append(tracker) // можно оставить для совместимости, но основная работа - с categories
-
+        // добавляем в категорию "Важное"
+        addTracker(tracker, to: "Важное")
         
+        treckers.append(tracker) // временный массив, можно потом убрать
+
         let filteredTrackers = getFilteredTrackersForSelectedDate()
         if filteredTrackers.isEmpty {
-            showdemo() // показываем приветствие, если нет подходящих трекеров
+            showdemo()
         } else {
-            hideEmptyState() // скрываем приветствие, если есть подходящие трекеры
+            hideEmptyState()
         }
-        
+
         collectionView.reloadData()
     }
-
-
 }
+
 
 
 extension MainViewController: TrackerCollectionViewCellDelegate {
