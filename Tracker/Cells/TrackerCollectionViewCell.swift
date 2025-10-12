@@ -36,12 +36,23 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
         return view
     }()
     
-        let avatarImageView: UIImageView = {
-            let imageView = UIImageView()
-            imageView.contentMode = .scaleAspectFit
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            return imageView
-        }()
+    let avatarView : UIView = {
+        let view = UIView()
+        view.backgroundColor = .white.withAlphaComponent(0.3)
+        view.layer.cornerRadius = 12
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    let avatarLabel : UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = UIFont(name: "SFProText-Medium", size: 12)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.heightAnchor.constraint(equalToConstant: 22).isActive = true
+        label.widthAnchor.constraint(equalToConstant: 16).isActive = true
+        return label
+    }()
  
         let titleLabel: UILabel = {
             let label = UILabel()
@@ -89,7 +100,10 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
             contentView.addSubview(allContainer)
             contentView.addSubview(topContainer)
             
-            topContainer.addSubview(avatarImageView)
+            topContainer.addSubview(avatarView)
+            
+            topContainer.addSubview(avatarLabel)
+            
             topContainer.addSubview(titleLabel)
             
             contentView.addSubview(daysLabel)
@@ -110,13 +124,17 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
                 topContainer.heightAnchor.constraint(equalToConstant: 90), // Высота верхней части (подгоните под дизайн)
 
                 // Эмодзи внутри контейнера
-                avatarImageView.leadingAnchor.constraint(equalTo: topContainer.leadingAnchor, constant: 12),
-                avatarImageView.topAnchor.constraint(equalTo: topContainer.topAnchor, constant: 12),
-                avatarImageView.widthAnchor.constraint(equalToConstant: 24),
-                avatarImageView.heightAnchor.constraint(equalToConstant: 24),
+                
+                
+                avatarView.leadingAnchor.constraint(equalTo: topContainer.leadingAnchor, constant: 12),
+                avatarView.topAnchor.constraint(equalTo: topContainer.topAnchor, constant: 12),
+                avatarView.widthAnchor.constraint(equalToConstant: 24),
+                avatarView.heightAnchor.constraint(equalToConstant: 24),
+                
+                avatarLabel.centerYAnchor.constraint(equalTo: avatarView.centerYAnchor),
+                avatarLabel.centerXAnchor.constraint(equalTo: avatarView.centerXAnchor),
 
                 // Заголовок внутри контейнера
-                
                 
                 
                 titleLabel.leadingAnchor.constraint(equalTo: topContainer.leadingAnchor, constant: 12),
@@ -141,12 +159,17 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
         self.idx = index
         self.isCompleted = isCompleted        // <- обязательно сохраняем
         self.chooseDate = selectDate
-
-        updateButtonAppearance()
-        titleLabel.text = tracker.name
-        avatarImageView.image = UIImage(named: "crySmile")
         
+        
+        updateButtonAppearance()
+        avatarLabel.text = tracker.emoji
+        titleLabel.text = tracker.name
+        topContainer.backgroundColor = tracker.color
+        
+        addButton.backgroundColor = tracker.color
         daysLabel.text = "\(completedDays) \(pluralizedDays(completedDays))"
+        
+        addButton.alpha = isCompleted ? 0.3 : 1.0
     }
     
     
