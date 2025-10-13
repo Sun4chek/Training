@@ -400,7 +400,7 @@ extension HabbitRegisterViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let option = options[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath) as! SettingsCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath) as? SettingsCell else { return UITableViewCell() }
         cell.configure(title: option.title, detail: option.detail, accessory: option.accessory)
         cell.backgroundColor = .secondarySystemBackground
         cell.contentView.backgroundColor = .secondarySystemBackground
@@ -508,8 +508,12 @@ extension HabbitRegisterViewController : UICollectionViewDataSource {
         }
     }
     
+    
+    
+    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCreateCell", for: indexPath) as! TrackerCreateCell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCreateCell", for: indexPath) as? TrackerCreateCell else { return UICollectionViewCell()}
         
         if indexPath.section == 0 {
             cell.config(type: .image, name : emojiSet[indexPath.row] )
@@ -573,9 +577,11 @@ extension HabbitRegisterViewController: UICollectionViewDelegateFlowLayout {
                         at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
         
-        let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
+        guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
                                                                      withReuseIdentifier: "Header",
-                                                                     for: indexPath) as! SectionHeader
+                                                                           for: indexPath) as? SectionHeader else {
+            return UICollectionReusableView()
+        }
         header.label.text = indexPath.section == 0 ? "Emoji" : "Цвета"
         return header
     }

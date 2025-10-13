@@ -17,11 +17,32 @@ final class TrackerCategoryStore : NSObject {
     private let fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>
     weak var delegate: TrackerCategoryStoreDelegate?
     
-
     convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        try! self.init(context: context)
+        // Пытаемся безопасно получить AppDelegate и context
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            let context = appDelegate.persistentContainer.viewContext
+            do {
+                try self.init(context: context)
+            } catch {
+                fatalError("❌ Ошибка инициализации TrackerStore с основным контекстом: \(error)")
+            }
+        } else {
+            // fallback — создаем in-memory Core Data (например, при тестах или SwiftUI)
+            let container = NSPersistentContainer(name: "Tracker")
+            container.loadPersistentStores { _, error in
+                if let error = error {
+                    print("⚠️ Ошибка загрузки in-memory хранилища: \(error)")
+                }
+            }
+            let context = container.viewContext
+            do {
+                try self.init(context: context)
+            } catch {
+                fatalError("❌ Ошибка инициализации TrackerStore с in-memory контекстом: \(error)")
+            }
+        }
     }
+
 
     init(context: NSManagedObjectContext)  throws{
         self.context = context

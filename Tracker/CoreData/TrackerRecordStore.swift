@@ -18,10 +18,33 @@ final class TrackerRecordStore: NSObject {
     weak var delegate: TrackerRecordStoreDelegate?
     
     // MARK: - Initф
+
     convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        try! self.init(context: context)
+        // Пытаемся безопасно получить AppDelegate и context
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            let context = appDelegate.persistentContainer.viewContext
+            do {
+                try self.init(context: context)
+            } catch {
+                fatalError("❌ Ошибка инициализации TrackerStore с основным контекстом: \(error)")
+            }
+        } else {
+            // fallback — создаем in-memory Core Data (например, при тестах или SwiftUI)
+            let container = NSPersistentContainer(name: "Tracker")
+            container.loadPersistentStores { _, error in
+                if let error = error {
+                    print("⚠️ Ошибка загрузки in-memory хранилища: \(error)")
+                }
+            }
+            let context = container.viewContext
+            do {
+                try self.init(context: context)
+            } catch {
+                fatalError("❌ Ошибка инициализации TrackerStore с in-memory контекстом: \(error)")
+            }
+        }
     }
+
     
     init(context: NSManagedObjectContext) throws {
         self.context = context
@@ -75,7 +98,7 @@ final class TrackerRecordStore: NSObject {
     // MARK: - Delete Record (unmark)
     func deleteRecord(for tracker: Tracker, date: Date) throws {
         let startOfDay = Calendar.current.startOfDay(for: date)
-        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else { return }
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
                 format: "id == %@ AND (date >= %@) AND (date < %@)",
@@ -90,7 +113,10 @@ final class TrackerRecordStore: NSObject {
     // MARK: - Check if tracker completed
     func isTrackerCompleted(_ tracker: Tracker, on date: Date) -> Bool {
         let startOfDay = Calendar.current.startOfDay(for: date)
-        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return false
+        }
+
 
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         request.predicate = NSPredicate(
