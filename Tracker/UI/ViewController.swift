@@ -149,34 +149,43 @@ final class MainViewController: UIViewController {
         allTrackers = trackerStore?.trackers ?? []
         allCategories = categoryStore?.categories ?? []
 
-        if allCategories.isEmpty {
-            do {
-                try categoryStore?.add(TrackerCategory(name: "Важное", trackers: []))
-                allCategories = categoryStore?.categories ?? []
-            } catch {
-                print("❗️ Ошибка при создании дефолтной категории: \(error)")
-            }
-        }
+        debugCategoriesAndTrackers()
 
         rebuildVisibleCategories()
         safeReloadCollectionView()
     }
 
+    
+    private func debugCategoriesAndTrackers() {
+        print("=== DEBUG CATEGORIES AND TRACKERS ===")
+        print("Всего трекеров: \(allTrackers.count)")
+        print("Всего категорий: \(allCategories.count)")
+        
+        for (index, category) in allCategories.enumerated() {
+            print("Категория \(index): '\(category.name)'")
+            print("  - Трекеров в категории: \(category.trackers.count)")
+            for tracker in category.trackers {
+                print("    - \(tracker.name) (ID: \(tracker.id))")
+            }
+        }
+        print("=====================================")
+    }
     private func rebuildVisibleCategories() {
         let filteredTrackers = filteredTrackersForSelectedDateAndSearch()
-
+        
+        print("Все трекеры: \(allTrackers.count)")
+        print("Все категории: \(allCategories.count)")
+        
         visibleCategories = allCategories.compactMap { category in
             let categoryTrackerIds = Set(category.trackers.map { $0.id })
-            let trackersInCategory: [Tracker]
-
-            if categoryTrackerIds.isEmpty {
-                trackersInCategory = filteredTrackers
-            } else {
-                trackersInCategory = filteredTrackers.filter { categoryTrackerIds.contains($0.id) }
-            }
-
+            let trackersInCategory = filteredTrackers.filter { categoryTrackerIds.contains($0.id) }
+            
+            print("Категория '\(category.name)': \(category.trackers.count) трекеров, после фильтрации: \(trackersInCategory.count)")
+            
             return trackersInCategory.isEmpty ? nil : TrackerCategory(name: category.name, trackers: trackersInCategory)
         }
+        
+        print("Видимые категории: \(visibleCategories.count)")
     }
 
     private func filteredTrackersForSelectedDateAndSearch() -> [Tracker] {
@@ -359,11 +368,11 @@ extension MainViewController: TrackerCollectionViewCellDelegate {
 
 // MARK: - HabbitRegisterViewControllerDelegate
 extension MainViewController: HabbitRegisterViewControllerDelegate {
-    func didCreateNewTracker(_ tracker: Tracker) {
+    func didCreateNewTracker(_ tracker: Tracker, name : String) {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self, let trackerStore = self.trackerStore else { return }
             do {
-                try trackerStore.addNewTracker(tracker)
+                try trackerStore.addNewTracker(tracker, toCategoryName: name )
                 DispatchQueue.main.async {
                     self.loadAllDataAndRefreshUI()
                 }

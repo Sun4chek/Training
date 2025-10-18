@@ -1,23 +1,22 @@
-//
-//  SettingsCell.swift
-//  Tracker
-//
-//  Created by Малика Есипова on 10.09.2025.
-//
-
 import UIKit
+
 class SettingsCell: UITableViewCell {
 
     private let titleLabel = UILabel()
     private let detailLabel = UILabel()
-
     private let chevronImageView: UIImageView = {
         let img = UIImageView(image: UIImage(systemName: "chevron.right"))
         img.tintColor = .systemGray2
         img.isHidden = true
         return img
     }()
-
+    private let checkmarkImageView: UIImageView = {
+        let img = UIImageView(image: UIImage(systemName: "checkmark"))
+        img.tintColor = .systemBlue
+        
+        img.isHidden = true
+        return img
+    }()
     private var toggleSwitch: UISwitch?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -35,26 +34,30 @@ class SettingsCell: UITableViewCell {
         detailLabel.font = UIFont(name: "SFProText-Regular", size: 17)
         detailLabel.textColor = .gray
         detailLabel.isHidden = true
-        
-        let stackTitle = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
-        stackTitle.axis = .vertical
-        stackTitle.alignment = .leading
-        stackTitle.distribution = .equalSpacing
 
-        let stack = UIStackView(arrangedSubviews: [stackTitle, chevronImageView])
-        stack.axis = .horizontal
-        stack.spacing = 8
-        stack.alignment = .center
-        stack.distribution = .equalSpacing
+        let textStack = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
+        textStack.axis = .vertical
+        textStack.alignment = .leading
+        textStack.spacing = 2
 
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(stack)
+        let rightStack = UIStackView(arrangedSubviews: [checkmarkImageView, chevronImageView])
+        rightStack.axis = .horizontal
+        rightStack.alignment = .center
+        rightStack.spacing = 4
+
+        let mainStack = UIStackView(arrangedSubviews: [textStack, rightStack])
+        mainStack.axis = .horizontal
+        mainStack.alignment = .center
+        mainStack.distribution = .equalSpacing
+        mainStack.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(mainStack)
 
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
-            stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
+            mainStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            mainStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
+            mainStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            mainStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
         ])
     }
 
@@ -64,6 +67,7 @@ class SettingsCell: UITableViewCell {
         detailLabel.isHidden = detail == nil
 
         chevronImageView.isHidden = true
+        checkmarkImageView.isHidden = true
         accessoryView = nil
         toggleSwitch?.removeFromSuperview()
         toggleSwitch = nil
@@ -77,8 +81,11 @@ class SettingsCell: UITableViewCell {
         case .text(let text):
             detailLabel.isHidden = false
             detailLabel.text = text
+        case .checkmark(let visible):
+            checkmarkImageView.isHidden = !visible
         case .none:
             break
         }
     }
 }
+
