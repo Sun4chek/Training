@@ -154,29 +154,50 @@ final class TrackerStore: NSObject {
     func deleteTracker(_ tracker: Tracker) throws {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
-        if let object = try context.fetch(request).first {
-            context.delete(object)
-            try context.save()
-        }
-    }
-    
-    
-    func updateTracker(_ tracker: Tracker) {
-        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
         
-        do {
-            if let cdTracker = try context.fetch(request).first {
-                cdTracker.name = tracker.name
-                cdTracker.color = tracker.color
-                cdTracker.emoji = tracker.emoji
-                cdTracker.schedule = tracker.schedule as NSObject
-                try context.save()
-            }
-        } catch {
-            print(" Ошибка update Tracker: \(error)")
-        }
+        guard let trackerCD = try context.fetch(request).first else { return }
+
+        // Удаляем сам объект
+        context.delete(trackerCD)
+
+        // Сохраняем изменения
+        try context.save()
+        print("🗑️ Трекер '\(tracker.name)' удалён.")
     }
+
+    
+    
+    func updateTracker(_ updatedTracker: Tracker, inCategory categoryName: String) throws {
+        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", updatedTracker.id as CVarArg)
+
+        guard let trackerCD = try context.fetch(request).first else {
+            print("❌ Трекер не найден для обновления")
+            return
+        }
+
+        // Обновляем поля
+        trackerCD.name = updatedTracker.name
+        trackerCD.color = updatedTracker.color
+        trackerCD.emoji = updatedTracker.emoji
+        trackerCD.schedule = updatedTracker.schedule as NSObject
+
+        // Проверяем категорию
+        let categoryRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        categoryRequest.predicate = NSPredicate(format: "name == %@", categoryName)
+
+        if let newCategory = try context.fetch(categoryRequest).first {
+            trackerCD.category = newCategory
+        } else {
+            let newCategory = TrackerCategoryCoreData(context: context)
+            newCategory.name = categoryName
+            trackerCD.category = newCategory
+        }
+
+        try context.save()
+        print("✅ Трекер \(updatedTracker.name) успешно обновлён и перенесён в категорию \(categoryName)")
+    }
+
 }
 
 // MARK: - NSFetchedResultsControllerDelegate

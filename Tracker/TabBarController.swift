@@ -32,21 +32,18 @@ class TabBarController: UITabBarController {
         ])
     }
 
-    // Вызовите этот метод в viewDidLoad
-    
-    
     func setupVc() {
         let trackerVc = UINavigationController(rootViewController: MainViewController())
-        
+        let trackers = NSLocalizedString("trackers", comment: "")
         trackerVc.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: trackers,
             image: UIImage(systemName: "record.circle"),
             selectedImage: UIImage(systemName: "record.circle.fill")
         )
-        
-        let statisticsVC = UINavigationController(rootViewController: StatisticViewController())
+        let statisticsVC = UINavigationController(rootViewController: StatisticsViewController())
+        let statistic = NSLocalizedString("statistic", comment: "")
                statisticsVC.tabBarItem = UITabBarItem(
-                   title: "Статистика",
+                title: statistic,
                    image: UIImage(named:"staticIcon"),
                    selectedImage: UIImage(named:  "staticfilled")
                )
@@ -58,3 +55,5 @@ class TabBarController: UITabBarController {
     }
     
 }
+
+

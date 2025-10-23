@@ -9,18 +9,21 @@ import UIKit
 
 final class TrackerSectionHeader: UICollectionReusableView {
     static let reuseId = "TrackerSectionHeader"
-
+    
+    let colors = Colors()
     let titleLabel: UILabel = {
         let l = UILabel()
+        
         l.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         l.translatesAutoresizingMaskIntoConstraints = false
-        l.textColor = .black
+        
         return l
     }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)
+        titleLabel.textColor = colors.plusColor
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor)

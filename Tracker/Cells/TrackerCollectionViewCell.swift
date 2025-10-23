@@ -13,6 +13,7 @@ protocol TrackerCollectionViewCellDelegate: AnyObject {
 
 final class TrackerCollectionViewCell : UICollectionViewCell {
     
+    let colors = Colors()
     weak var delegate: TrackerCollectionViewCellDelegate?
     private var tracker: Tracker?
     private var isCompleted = false
@@ -167,19 +168,21 @@ final class TrackerCollectionViewCell : UICollectionViewCell {
         topContainer.backgroundColor = tracker.color
         
         addButton.backgroundColor = tracker.color
-        daysLabel.text = "\(completedDays) \(pluralizedDays(completedDays))"
+        daysLabel.text = "\(pluralizedDays(completedDays))"
+        daysLabel.textColor = colors.plusColor
         
         addButton.alpha = isCompleted ? 0.3 : 1.0
     }
     
-    
+
     private func pluralizedDays(_ count: Int) -> String {
-        switch count % 10 {
-        case 1 where count % 100 != 11: return "день"
-        case 2...4 where !(12...14).contains(count % 100): return "дня"
-        default: return "дней"
-        }
+        let format = NSLocalizedString("days_count", comment: "Количество дней в правильной форме")
+        return String.localizedStringWithFormat(format, count)
     }
+
+    
+    
+    
     private func updateButtonAppearance() {
         let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
         if isCompleted {

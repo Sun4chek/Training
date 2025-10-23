@@ -14,7 +14,8 @@ final class NewCategoryViewController: UIViewController {
     
     private let textField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "Введите название категории"
+        let categoryName = NSLocalizedString("categoryName", comment: "")
+        tf.placeholder = categoryName
         tf.font = UIFont.systemFont(ofSize: 17)
         tf.backgroundColor = .secondarySystemBackground
         tf.layer.cornerRadius = 16
@@ -25,7 +26,8 @@ final class NewCategoryViewController: UIViewController {
     
     private lazy var okButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        let okButtonTitle = NSLocalizedString("OK", comment: "")
+        button.setTitle(okButtonTitle, for: .normal)
         button.backgroundColor = .systemGray3 // ❌ неактивна изначально
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 16
@@ -43,10 +45,13 @@ final class NewCategoryViewController: UIViewController {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    
+//    ????
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Новая категория"
+        let newCategoryTitle = NSLocalizedString("New Category", comment: "")
+        navigationItem.title = newCategoryTitle
         setupUI()
         textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     }
