@@ -1,10 +1,3 @@
-//
-//  NewCategoryViewController.swift
-//  Tracker
-//
-//  Created by Волошин Александр on 10/18/25.
-//
-
 import UIKit
 
 final class NewCategoryViewController: UIViewController {
@@ -21,6 +14,7 @@ final class NewCategoryViewController: UIViewController {
         tf.layer.cornerRadius = 16
         tf.setLeftPaddingPoints(12)
         tf.translatesAutoresizingMaskIntoConstraints = false
+        tf.returnKeyType = .done // Добавляем кнопку "Готово"
         return tf
     }()
     
@@ -28,7 +22,7 @@ final class NewCategoryViewController: UIViewController {
         let button = UIButton(type: .system)
         let okButtonTitle = NSLocalizedString("OK", comment: "")
         button.setTitle(okButtonTitle, for: .normal)
-        button.backgroundColor = .systemGray3 // ❌ неактивна изначально
+        button.backgroundColor = .systemGray3
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 16
         button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
@@ -45,15 +39,15 @@ final class NewCategoryViewController: UIViewController {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    
-//    ????
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         let newCategoryTitle = NSLocalizedString("New Category", comment: "")
         navigationItem.title = newCategoryTitle
         setupUI()
+        setupGestures()
         textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        textField.delegate = self // Добавляем делегат
     }
     
     private func setupUI() {
@@ -73,6 +67,17 @@ final class NewCategoryViewController: UIViewController {
         ])
     }
     
+    private func setupGestures() {
+        // Добавляем тап-жест для скрытия клавиатуры
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func hideKeyboard() {
+        view.endEditing(true)
+    }
+    
     @objc private func textFieldDidChange() {
         let hasText = !(textField.text?.isEmpty ?? true)
         okButton.isEnabled = hasText
@@ -80,10 +85,20 @@ final class NewCategoryViewController: UIViewController {
     }
     
     @objc private func okButtonTapped() {
+        hideKeyboard() // Скрываем клавиатуру при нажатии OK
         guard let name = textField.text, !name.isEmpty else { return }
         viewModel.createCategory(name: name)
         onCategoryCreated?(name)
         dismiss(animated: true)
+    }
+}
+
+// MARK: - UITextFieldDelegate
+extension NewCategoryViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        // Скрываем клавиатуру при нажатии Return/Done
+        hideKeyboard()
+        return true
     }
 }
 
@@ -95,4 +110,3 @@ private extension UITextField {
         leftViewMode = .always
     }
 }
-
