@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2B0544A22E86A1F90092FA37 /* Tracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2B0544812E86A1F90092FA37 /* Tracker.xcdatamodeld */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		2B7FF75F2E5F716200B7F51F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,13 +28,50 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2B0544892E86A1F90092FA37 /* Tracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Tracker.xcdatamodel; sourceTree = "<group>"; };
 		2B7FF7452E5F716000B7F51F /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B7FF75E2E5F716200B7F51F /* TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B7FF7682E5F716200B7F51F /* TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2B7FF7702E5F716200B7F51F /* Exceptions for "Tracker" folder in "Tracker" target */ = {
+		2B0543282E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Fonts/SFProText-Bold.ttf",
+				"Fonts/SFProText-BoldItalic.ttf",
+				"Fonts/SFProText-Heavy.ttf",
+				"Fonts/SFProText-HeavyItalic.ttf",
+				"Fonts/SFProText-Light.ttf",
+				"Fonts/SFProText-LightItalic.ttf",
+				"Fonts/SFProText-Medium.ttf",
+				"Fonts/SFProText-MediumItalic.ttf",
+				"Fonts/SFProText-Regular.ttf",
+				"Fonts/SFProText-RegularItalic.ttf",
+				"Fonts/SFProText-Semibold.ttf",
+				"Fonts/SFProText-SemiboldItalic.ttf",
+			);
+			target = 2B7FF75D2E5F716200B7F51F /* TrackerTests */;
+		};
+		2B0543292E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Fonts/SFProText-Bold.ttf",
+				"Fonts/SFProText-BoldItalic.ttf",
+				"Fonts/SFProText-Heavy.ttf",
+				"Fonts/SFProText-HeavyItalic.ttf",
+				"Fonts/SFProText-Light.ttf",
+				"Fonts/SFProText-LightItalic.ttf",
+				"Fonts/SFProText-Medium.ttf",
+				"Fonts/SFProText-MediumItalic.ttf",
+				"Fonts/SFProText-Regular.ttf",
+				"Fonts/SFProText-RegularItalic.ttf",
+				"Fonts/SFProText-Semibold.ttf",
+				"Fonts/SFProText-SemiboldItalic.ttf",
+			);
+			target = 2B7FF7672E5F716200B7F51F /* TrackerUITests */;
+		};
+		2B0B97C72E98466D00EB0C6F /* Exceptions for "Tracker" folder in "Tracker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -43,7 +84,9 @@
 		2B7FF7472E5F716000B7F51F /* Tracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2B7FF7702E5F716200B7F51F /* Exceptions for "Tracker" folder in "Tracker" target */,
+				2B0B97C72E98466D00EB0C6F /* Exceptions for "Tracker" folder in "Tracker" target */,
+				2B0543282E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerTests" target */,
+				2B0543292E76DB750092FA37 /* Exceptions for "Tracker" folder in "TrackerUITests" target */,
 			);
 			path = Tracker;
 			sourceTree = "<group>";
@@ -88,6 +131,7 @@
 		2B7FF73C2E5F716000B7F51F = {
 			isa = PBXGroup;
 			children = (
+				2B0544812E86A1F90092FA37 /* Tracker.xcdatamodeld */,
 				2B7FF7472E5F716000B7F51F /* Tracker */,
 				2B7FF7612E5F716200B7F51F /* TrackerTests */,
 				2B7FF76B2E5F716200B7F51F /* TrackerUITests */,
@@ -249,6 +293,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B0544A22E86A1F90092FA37 /* Tracker.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,23 +332,25 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2ZAVZV46Z6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Tracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Tracker;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.yandex.practicum.Tracker;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.yandex.practicum.VoloshinTracker556;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -315,23 +362,25 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2ZAVZV46Z6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Tracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Tracker;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.yandex.practicum.Tracker;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.yandex.practicum.VoloshinTracker556;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -569,6 +618,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		2B0544812E86A1F90092FA37 /* Tracker.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				2B0544892E86A1F90092FA37 /* Tracker.xcdatamodel */,
+			);
+			currentVersion = 2B0544892E86A1F90092FA37 /* Tracker.xcdatamodel */;
+			path = Tracker.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 2B7FF73D2E5F716000B7F51F /* Project object */;
 }
