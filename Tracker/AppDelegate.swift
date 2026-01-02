@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreData
+import AppMetricaCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -19,6 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         ValueTransformer.setValueTransformer(WeekdaysTransformer(), forName: NSValueTransformerName("WeekdaysTransformer"))
         ValueTransformer.setValueTransformer(UIColorTransformer(), forName: NSValueTransformerName("UIColorTransformer"))
+        
+        let configuration = AppMetricaConfiguration(apiKey: "f8d9d319-e8aa-43a9-9094-4ad9f5d4e6bf")
+            AppMetrica.activate(with: configuration!)
+        
         return true
     }
 

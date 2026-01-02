@@ -1,0 +1,45 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Волошин Александр on 10/21/25.
+  
+*/
+"addCategory" = "Добавить категорию";
+"category" = "Категории";
+"mainCategory" = "Категория";
+"schedule" = "Расписание";
+"maxLenth" = "Ограничение 38 символов";
+"trackerName" = "Введите название трекера";
+"cancel" = "Отменить";
+"create" = "Создать";
+"newHabbit" = "Новая привычка";
+"Emoji" = "Emoji";
+"colors" = "Цвета";
+"categoryName" = "Введите название категории";
+"OK" = "Готово";
+"New Category" = "Новая категория";
+"trackers" = "Трекеры";
+"search" = "Поиск";
+"whatTrack" = "Что будем отслеживать?";
+"Habbit" = "Привычка";
+"createTracker" = "Создание трекера";
+"onbording1" = "Отслеживайте только то, что хотите";
+"onbording2" = "Даже если это не литры воды и йога";
+"niceTechnology" = "Вот это технологии!";
+"statistic" = "Статистика";
+"edit" = "Редактировать";
+"delete" = "Удалить";
+"deleteAlertTitle" = "Удалить трекер?";
+"deleteAlertMessage" = "Вы уверены, что хотите удалить этот трекер? Это действие нельзя отменить.";
+"deleteYes" = "Удалить";
+"save" = "Сохранить";
+"editHabbit" = "Редактирование привычки";
+"filters" = "Фильтры";
+"nothingTrack" = "Ничего не найдено";
+"statistics.placeholder.empty" =  "Анализировать пока нечего";
+"statistics.best_period_label" = "Лучший период";
+"statistics.ideal_days_label" = "Идеальные дни";
+"statistics.completed_trackers_label" = "Трекеров завершено";
+"statistics.average_label" = "Среднее значение";
+"statistics.title" = "Статистика";

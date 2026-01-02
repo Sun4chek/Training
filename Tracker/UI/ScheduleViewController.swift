@@ -23,10 +23,7 @@ final class ScheduleViewController: UIViewController {
     private var setDays: Set<Weekdays> = []
     private let days = Weekdays.allCases
     
-    
-    
-    
-    private var options: [SettingsOption] = {
+    private lazy var options: [SettingsOption] = {
         let weekdays: [Weekdays] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
         return weekdays.map { weekday in
             let toggle = UISwitch()
@@ -54,8 +51,9 @@ final class ScheduleViewController: UIViewController {
     
     private lazy var okButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
-        button.backgroundColor = .ypBlack 
+        let okButtonTitle = NSLocalizedString("OK", comment: "")
+        button.setTitle(okButtonTitle, for: .normal)
+        button.backgroundColor = .ypBlack
         button.setTitleColor(.white, for: .normal)  // Белый текст
         button.layer.cornerRadius = 16
         button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
@@ -67,8 +65,9 @@ final class ScheduleViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setDays = selectedDays
+        let schedule = NSLocalizedString("schedule", comment: "")
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Расписание"
+        navigationItem.title = schedule
         navigationItem.hidesBackButton = true
         
         
