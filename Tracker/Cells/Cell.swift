@@ -14,4 +14,6 @@ class Cell : UIViewController {
         label.text = "Hello, World!"
         return label
     }()
+    
+    let label1 = UILabel()
 }
