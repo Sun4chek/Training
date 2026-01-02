@@ -14,11 +14,13 @@ enum SettingsCellAccessory {
     case chevron
     case toggle(UISwitch)
     case text(String)
+    case checkmark(Bool)
     case none
 }
 
+
 protocol HabbitRegisterViewControllerDelegate: AnyObject {
-    func didCreateNewTracker(_ tracker: Tracker)
+    func didCreateNewTracker(_ tracker: Tracker,name: String)
 }
 
 // MARK: - Контроллер
@@ -35,7 +37,7 @@ class HabbitRegisterViewController: UIViewController {
     let emojiSet  :  [String] = ["🙂","😻","🌺","🐶","❤️","😱","😇","😡","🥶","🤔","🙌","🍔","🥦","🏓","🥇","🎸","🏝️","😪"]
     let colors : [String] = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18"]
     
-    private var selectedCategory: String = "Важное"
+    private var selectedCategory: String = ""
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     weak var delegate: HabbitRegisterViewControllerDelegate?
@@ -47,7 +49,7 @@ class HabbitRegisterViewController: UIViewController {
     private var selectedDays: [Weekdays] = []
     
     private var options: [SettingsOption] = [
-        SettingsOption(title: "Категория", detail: "Важное", accessory: .chevron),
+        SettingsOption(title: "Категория", detail: nil, accessory: .chevron),
         SettingsOption(title: "Расписание", detail: nil, accessory: .chevron,selectedDays: [])
     ]
     
@@ -385,7 +387,7 @@ class HabbitRegisterViewController: UIViewController {
             schedule: selectedDays
         )
         
-        delegate?.didCreateNewTracker(newTracker)
+        delegate?.didCreateNewTracker(newTracker,name: selectedCategory)
         dismiss(animated: true)
     }
 }
@@ -414,13 +416,26 @@ extension HabbitRegisterViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch indexPath.row {
+            // В didSelectRow
         case 0:
-            print("Открыть экран выбора категории")
-            // push category screen
-            let vc = UIViewController()
-            vc.view.backgroundColor = .systemBackground
-            vc.title = "Категории"
-            navigationController?.pushViewController(vc, animated: true)
+            do {
+                let store = try TrackerCategoryStore() // ⚠️ если init может бросить ошибку
+                let categoryVC = CategoryListViewController(
+                    selectedCategory: options[indexPath.row].detail,
+                    store: store
+                )
+                categoryVC.onCategorySelected = { [weak self] selectedName in
+                    guard let self else { return }
+                    self.selectedCategory = selectedName
+                    self.options[indexPath.row].detail = selectedName
+                    self.scheduleOrCategoryTableView.reloadRows(at: [indexPath], with: .automatic)
+                    self.updateCreateButtonState()
+                }
+                navigationController?.pushViewController(categoryVC, animated: true)
+            } catch {
+                print("❌ Ошибка инициализации TrackerCategoryStore: \(error)")
+            }
+
         case 1:
             print("Открыть экран расписания")
             let vc = ScheduleViewController()

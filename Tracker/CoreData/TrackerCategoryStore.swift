@@ -80,15 +80,30 @@ final class TrackerCategoryStore : NSObject {
 
     // MARK: - Преобразование CoreData -> Модель
     private func convertToCategory(from coreData: TrackerCategoryCoreData) throws -> TrackerCategory {
-        guard
-            let name = coreData.name
-        else {
+        guard let name = coreData.name else {
             throw NSError(domain: "TrackerStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Ошибка преобразования данных"])
         }
         
-        let trackers: [Tracker] = []
+        // Получаем трекеры через связь
+        let trackersSet = coreData.trackers as? Set<TrackerCoreData> ?? []
+        let trackers: [Tracker] = trackersSet.compactMap { trackerCD in
+            guard let id = trackerCD.id,
+                  let name = trackerCD.name,
+                  let emoji = trackerCD.emoji,
+                  let color = trackerCD.color as? UIColor,
+                  let schedule = trackerCD.schedule as? [Weekdays] else {
+                print("❌ Ошибка преобразования трекера в категории '\(name)'")
+                return nil
+            }
+            return Tracker(id: id, name: name, color: color, emoji: emoji, schedule: schedule)
+        }
         
-        return TrackerCategory(name: name , trackers: trackers)
+        print("🔄 Категория '\(name)' содержит \(trackers.count) трекеров")
+        for tracker in trackers {
+            print("   - \(tracker.name)")
+        }
+        
+        return TrackerCategory(name: name, trackers: trackers)
     }
     
     // MARK: - Create / Delete
