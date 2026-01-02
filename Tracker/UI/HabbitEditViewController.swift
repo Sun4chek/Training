@@ -1,63 +1,31 @@
 import UIKit
 
-// MARK: - Модель
-
-struct SettingsOption {
-    let title: String
-    var detail: String?            // строка для показа под заголовком, например "Пн, Пт"
-    var accessory: SettingsCellAccessory
-    var selectedDays: [Weekdays]?  // реальная структура выбранных дней
+protocol HabitEditViewControllerDelegate: AnyObject {
+    func didUpdateTracker(_ tracker: Tracker, categoryName: String)
 }
 
-
-enum SettingsCellAccessory {
-    case chevron
-    case toggle(UISwitch)
-    case text(String)
-    case checkmark(Bool)
-    case none
-}
-
-
-protocol HabbitRegisterViewControllerDelegate: AnyObject {
-    func didCreateNewTracker(_ tracker: Tracker,name: String)
-}
-
-// MARK: - Контроллер
-
-class HabbitRegisterViewController: UIViewController {
+final class HabitEditViewController: UIViewController {
     
     
-    private var selectedEmojiIndexPath: IndexPath?
-    private var selectedColorIndexPath: IndexPath?
-    let itemsPerRow: CGFloat = 6
-    let spacing: CGFloat = 5
-    let sectionInsets = UIEdgeInsets(top: 24, left: 18, bottom: 40, right: 18)
+  
+    // MARK: - Properties
+    weak var delegate: HabitEditViewControllerDelegate?
+    private var tracker: Tracker
+    private var originalCategory: String
+    private var completedDays: Int
     
-    let emojiSet  :  [String] = ["🙂","😻","🌺","🐶","❤️","😱","😇","😡","🥶","🤔","🙌","🍔","🥦","🏓","🥇","🎸","🏝️","😪"]
-    let colors : [String] = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18"]
-    
-    private var selectedCategory: String = ""
+    // MARK: - UI Components (копируем из HabbitRegisterViewController)
     private let scrollView = UIScrollView()
     private let contentView = UIView()
-    weak var delegate: HabbitRegisterViewControllerDelegate?
     
-    // высота таблицы (мы будем менять .constant после layout)
-    private var tableViewHeightConstraint: NSLayoutConstraint?
-    private let rowHeight: CGFloat = 75
-    private var habitTitle: String?
-    private var selectedDays: [Weekdays] = []
-    
-    private var options: [SettingsOption] = {
-        let mainCategory = NSLocalizedString("mainCategory", comment: "")
-        let schedule = NSLocalizedString("schedule", comment: "")
-        return [
-            SettingsOption(title: mainCategory, detail: nil, accessory: .chevron),
-            SettingsOption(title: schedule, detail: nil, accessory: .chevron,selectedDays: []) ]
+    private var completedDaysLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
-    
-
     private let warningLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "SFProText-Regular", size: 17)
@@ -66,11 +34,10 @@ class HabbitRegisterViewController: UIViewController {
         label.textColor = .red
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.isHidden = true // скрыт по умолчанию
+        label.isHidden = true
         return label
     }()
     
-
     private let nameTextField: UITextField = {
         let tf = UITextField()
         let trackerName = NSLocalizedString("trackerName", comment: "")
@@ -82,12 +49,11 @@ class HabbitRegisterViewController: UIViewController {
         tf.textAlignment = .left
         tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
         tf.leftViewMode = .always
-        
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }()
     
-    private var scheduleOrCategoryTableView: UITableView = {
+    private let scheduleOrCategoryTableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
         table.backgroundColor = .clear
         table.separatorStyle = .singleLine
@@ -101,7 +67,7 @@ class HabbitRegisterViewController: UIViewController {
         table.translatesAutoresizingMaskIntoConstraints = false
         return table
     }()
-
+    
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
         let cancel = NSLocalizedString("cancel", comment: "")
@@ -118,19 +84,18 @@ class HabbitRegisterViewController: UIViewController {
         return button
     }()
     
-    private lazy var createButton: UIButton = {
+    private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
-        let create = NSLocalizedString("create", comment: "")
-        button.setTitle(create, for: .normal)
+        let save = NSLocalizedString("save", comment: "Сохранить")
+        button.setTitle(save, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
-        button.backgroundColor = .createBtnNA
+        button.backgroundColor = .black
         button.layer.cornerRadius = 16
-        button.isEnabled = false
+        button.isEnabled = true
         button.widthAnchor.constraint(equalToConstant: 166).isActive = true
         button.heightAnchor.constraint(equalToConstant: 60).isActive = true
-        
-        button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -145,72 +110,82 @@ class HabbitRegisterViewController: UIViewController {
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                 withReuseIdentifier: "Header")
         collectionView.isScrollEnabled = false
-
         return collectionView
     }()
     
-    private func updateCreateButtonState() {
-        let hasText = !(nameTextField.text?.isEmpty ?? true)
-        let hasSchedule = !(options[1].selectedDays?.isEmpty ?? true)
-        let hasSelectedEmoji = selectedEmojiIndexPath != nil
-        let hasSelectedColor = selectedColorIndexPath != nil
-        
-        let isReady = hasText && hasSchedule && hasSelectedEmoji && hasSelectedColor
-        
-        createButton.isEnabled = isReady
-        createButton.backgroundColor = isReady ? .black : .systemGray6
-        createButton.setTitleColor(isReady ? .white : .systemGray, for: .normal)
+    // MARK: - Data
+    private let emojiSet = ["🙂","😻","🌺","🐶","❤️","😱","😇","😡","🥶","🤔","🙌","🍔","🥦","🏓","🥇","🎸","🏝️","😪"]
+    private let colors = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18"]
+    private var selectedEmojiIndexPath: IndexPath?
+    private var selectedColorIndexPath: IndexPath?
+    private var selectedCategory: String = ""
+    private var selectedDays: [Weekdays] = []
+    
+    private var options: [SettingsOption] = {
+        let mainCategory = NSLocalizedString("mainCategory", comment: "")
+        let schedule = NSLocalizedString("schedule", comment: "")
+        return [
+            SettingsOption(title: mainCategory, detail: nil, accessory: .chevron),
+            SettingsOption(title: schedule, detail: nil, accessory: .chevron, selectedDays: [])
+        ]
+    }()
+    
+    private let itemsPerRow: CGFloat = 6
+    private let spacing: CGFloat = 5
+    private let sectionInsets = UIEdgeInsets(top: 24, left: 18, bottom: 40, right: 18)
+    private let rowHeight: CGFloat = 75
+    private var tableViewHeightConstraint: NSLayoutConstraint?
+    
+    // MARK: - Init
+    init(tracker: Tracker, categoryName: String, completedDays: Int) {
+        self.tracker = tracker
+        self.originalCategory = categoryName
+        self.completedDays = completedDays
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
+        configureWithTracker()
+        updateCompletedDaysLabel()
+        
         nameTextField.delegate = self
         nameTextField.returnKeyType = .done
         scheduleOrCategoryTableView.dataSource = self
         scheduleOrCategoryTableView.delegate = self
-                emojiAndColorCollectionView.dataSource = self
-                emojiAndColorCollectionView.delegate = self
+        emojiAndColorCollectionView.dataSource = self
+        emojiAndColorCollectionView.delegate = self
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
         
-        
-        view.backgroundColor = .systemBackground
-        let newHabbit = NSLocalizedString("newHabbit", comment: "")
-        navigationItem.title = newHabbit
-        navigationItem.hidesBackButton = true
         nameTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
-        setupUI()
-        // reload чтобы заполнить contentSize
-        scheduleOrCategoryTableView.reloadData()
     }
-    
-  
-    
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // Обновляем высоту таблицы по её contentSize — это важно
         scheduleOrCategoryTableView.layoutIfNeeded()
         let height = scheduleOrCategoryTableView.contentSize.height
         if tableViewHeightConstraint?.constant != height {
             tableViewHeightConstraint?.constant = height
-            // если нужно, можно анимировать, но не обязательно
         }
-        
-        let collectionHeight = calculateCollectionViewHeight()
-           emojiAndColorCollectionView.heightAnchor.constraint(equalToConstant: collectionHeight).isActive = true
     }
     
-    // MARK: - UI setup
- 
-    
-    
-    
+    // MARK: - Private methods
     private func setupUI() {
-        // добавляем scrollView
+        view.backgroundColor = .systemBackground
+        let editHabbit = NSLocalizedString("editHabbit", comment: "Редактирование привычки")
+        navigationItem.title = editHabbit
+        navigationItem.hidesBackButton = true
+        
+        // ScrollView setup
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
         
@@ -228,144 +203,120 @@ class HabbitRegisterViewController: UIViewController {
         let frameGuide = scrollView.frameLayoutGuide
         
         NSLayoutConstraint.activate([
-            // Привязки по контенту
             contentView.topAnchor.constraint(equalTo: contentGuide.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: contentGuide.leadingAnchor, constant: 16),  // боковой inset
+            contentView.leadingAnchor.constraint(equalTo: contentGuide.leadingAnchor, constant: 16),
             contentView.trailingAnchor.constraint(equalTo: contentGuide.trailingAnchor, constant: -16),
-            
-            
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-            // ширина contentView = ширина frame - 32 (16+16) — гарантирует корректную область для сабвью
             contentView.widthAnchor.constraint(equalTo: frameGuide.widthAnchor, constant: -32)
         ])
         
-        let stack = UIStackView(arrangedSubviews: [cancelButton, createButton])
+        // Stack for buttons
+        let stack = UIStackView(arrangedSubviews: [cancelButton, saveButton])
         stack.axis = .horizontal
         stack.spacing = 8
         stack.alignment = .center
-        stack.distribution = .fillEqually   // <-- это автоматически задаст одинаковую ширину
+        stack.distribution = .fillEqually
         stack.translatesAutoresizingMaskIntoConstraints = false
         
-        
-        
-        // Добавляем сабвью внутрь contentView
+        // Add subviews
+        contentView.addSubview(completedDaysLabel)
         contentView.addSubview(nameTextField)
         contentView.addSubview(warningLabel)
         contentView.addSubview(scheduleOrCategoryTableView)
         contentView.addSubview(emojiAndColorCollectionView)
         contentView.addSubview(stack)
         
-        
-        
-        
-        // Констрейнты для текстового поля
+        completedDaysLabel.text = "\(completedDays)"
+        // Constraints
         NSLayoutConstraint.activate([
-            nameTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            completedDaysLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            completedDaysLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            completedDaysLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            completedDaysLabel.heightAnchor.constraint(equalToConstant: 38),
+            
+            nameTextField.topAnchor.constraint(equalTo: completedDaysLabel.bottomAnchor, constant: 40),
             nameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            nameTextField.heightAnchor.constraint(equalToConstant: 75)
-        ])
-        
-        NSLayoutConstraint.activate([
-            warningLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
-            warningLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
-        ])
-        
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: emojiAndColorCollectionView.bottomAnchor, constant: 16),
-               stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 4),
-               stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -4),
+            nameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            cancelButton.heightAnchor.constraint(equalToConstant: 75),
-            createButton.heightAnchor.constraint(equalToConstant: 75)
-        ])
-        contentView.bottomAnchor.constraint(equalTo: stack.bottomAnchor, constant: 24).isActive = true
-        
-        // Констрейнты для таблицы: top, leading, trailing, height; а также bottom привязка к contentView.bottom
-        tableViewHeightConstraint = scheduleOrCategoryTableView.heightAnchor.constraint(equalToConstant: CGFloat(options.count) * rowHeight)
-        tableViewHeightConstraint?.isActive = true
-        
-        NSLayoutConstraint.activate([
+            warningLabel.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 8),
+            warningLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
             scheduleOrCategoryTableView.topAnchor.constraint(equalTo: warningLabel.bottomAnchor, constant: 24),
             scheduleOrCategoryTableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             scheduleOrCategoryTableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             
+            emojiAndColorCollectionView.topAnchor.constraint(equalTo: scheduleOrCategoryTableView.bottomAnchor, constant: 32),
+            emojiAndColorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            emojiAndColorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            emojiAndColorCollectionView.heightAnchor.constraint(equalToConstant: 460),
+            
+            stack.topAnchor.constraint(equalTo: emojiAndColorCollectionView.bottomAnchor, constant: 16),
+            stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 4),
+            stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -4),
+            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
         
-        
-        
-        NSLayoutConstraint.activate([
-            emojiAndColorCollectionView.topAnchor.constraint(equalTo: scheduleOrCategoryTableView.bottomAnchor, constant: 32),
-            emojiAndColorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor ),
-            emojiAndColorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-             // пример, потом можно вычислить динамически
-            ])
-            
+        tableViewHeightConstraint = scheduleOrCategoryTableView.heightAnchor.constraint(equalToConstant: CGFloat(options.count) * rowHeight)
+        tableViewHeightConstraint?.isActive = true
     }
     
-    
-    private func calculateCollectionViewHeight() -> CGFloat {
-        let numberOfSections = 2
-        let itemsPerSection = emojiSet.count // предполагаем, что в обеих секциях одинаковое количество
+    private func configureWithTracker() {
+        // Заполняем данными трекера
+        nameTextField.text = tracker.name
+        selectedCategory = originalCategory
+        selectedDays = tracker.schedule
         
-        // Высота заголовков секций
-        let headerHeight: CGFloat = 32
-        let totalHeadersHeight = CGFloat(numberOfSections) * headerHeight
+        // Настраиваем опции
+        options[0].detail = originalCategory
+        options[1].selectedDays = tracker.schedule
+        if !tracker.schedule.isEmpty {
+            options[1].detail = tracker.schedule.map { $0.short }.joined(separator: ", ")
+        }
         
-        // Высота отступов секций
-        let sectionInsetsTop: CGFloat = 24
-        let sectionInsetsBottom: CGFloat = 40
-        let totalInsetsHeight = CGFloat(numberOfSections) * (sectionInsetsTop + sectionInsetsBottom)
+        // Находим emoji
+        if let emojiIndex = emojiSet.firstIndex(of: tracker.emoji) {
+            selectedEmojiIndexPath = IndexPath(row: emojiIndex, section: 0)
+        }
         
-        // Расчет количества строк в секции
-        let itemsPerRow: CGFloat = 6
-        let rowsPerSection = ceil(CGFloat(itemsPerSection) / itemsPerRow)
+        // Находим цвет
+        let colorName = findColorName(for: tracker.color)
+        if let colorIndex = colors.firstIndex(of: colorName) {
+            selectedColorIndexPath = IndexPath(row: colorIndex, section: 1)
+        }
         
-        // Высота одной ячейки
-        let availableWidth = view.bounds.width - 32 - 4 // ширина contentView - отступы
-        let totalSpacing = sectionInsets.left + sectionInsets.right + (itemsPerRow - 1) * spacing
-        let itemWidth = (availableWidth - totalSpacing) / itemsPerRow
-        let cellHeight = itemWidth
-        
-        // Общая высота ячеек
-        let totalCellsHeight = CGFloat(numberOfSections) * rowsPerSection * cellHeight
-        
-        // Общая высота коллекции
-        let totalHeight = totalHeadersHeight + totalInsetsHeight + totalCellsHeight
-        
-        return totalHeight
-    }
-
-    
-    
-    
-    private func openScheduleScreen() {
-        let vc = ScheduleViewController()
-        vc.view.backgroundColor = .systemBackground
-        let schedule = NSLocalizedString("schedule", comment: "")
-        vc.title = schedule
-        navigationController?.pushViewController(vc, animated: true)
+        scheduleOrCategoryTableView.reloadData()
     }
     
-// MARK: - objc methods
+    private func findColorName(for color: UIColor) -> String {
+        for colorName in colors {
+            if let namedColor = UIColor(named: colorName), namedColor.isEqual(color) {
+                return colorName
+            }
+        }
+        return colors.first ?? "1"
+    }
     
+    private func updateCompletedDaysLabel() {
+        completedDaysLabel.text = "\(pluralizedDays(completedDays))"
+    }
+    
+    private func pluralizedDays(_ count: Int) -> String {
+        let format = NSLocalizedString("days_count", comment: "Количество дней в правильной форме")
+        return String.localizedStringWithFormat(format, count)
+    }
+    
+    // MARK: - Actions
     @objc private func hideKeyboard() {
         view.endEditing(true)
     }
-    
     
     @objc private func cancelButtonTapped() {
         dismiss(animated: true)
     }
     
-    @objc private func textFieldDidChange(_ textField: UITextField) {
-        updateCreateButtonState()
-        habitTitle = textField.text
-    }
-    
-    @objc private func createButtonTapped() {
-        guard let habitTitle = nameTextField.text,
-              !habitTitle.isEmpty,
+    @objc private func saveButtonTapped() {
+        guard let habitTitle = nameTextField.text, !habitTitle.isEmpty,
               let emojiIndexPath = selectedEmojiIndexPath,
               let colorIndexPath = selectedColorIndexPath else {
             return
@@ -373,27 +324,34 @@ class HabbitRegisterViewController: UIViewController {
         
         let selectedEmoji = emojiSet[emojiIndexPath.row]
         let selectedColorName = colors[colorIndexPath.row]
-        
-        // Преобразуем название цвета в UIColor
         let selectedColor = UIColor(named: selectedColorName) ?? .blue
         
-        let newTracker = Tracker(
-            id: UUID(),
+        let updatedTracker = Tracker(
+            id: tracker.id, // Сохраняем оригинальный ID!
             name: habitTitle,
-            color: selectedColor,  // теперь передаем UIColor
+            color: selectedColor,
             emoji: selectedEmoji,
             schedule: selectedDays
         )
         
-        delegate?.didCreateNewTracker(newTracker,name: selectedCategory)
+        delegate?.didUpdateTracker(updatedTracker, categoryName: selectedCategory)
         dismiss(animated: true)
+    }
+    
+    @objc private func textFieldDidChange(_ textField: UITextField) {
+        let maxLength: Int = 38
+        guard let currentText = textField.text as NSString? else { return }
+        
+        if currentText.length > maxLength {
+            warningLabel.isHidden = false
+        } else {
+            warningLabel.isHidden = true
+        }
     }
 }
 
 // MARK: - UITableViewDataSource
-
-extension HabbitRegisterViewController: UITableViewDataSource {
-    
+extension HabitEditViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return options.count
     }
@@ -409,15 +367,13 @@ extension HabbitRegisterViewController: UITableViewDataSource {
 }
 
 // MARK: - UITableViewDelegate
-extension HabbitRegisterViewController: UITableViewDelegate {
-    
+extension HabitEditViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch indexPath.row {
-            // В didSelectRow
         case 0:
             do {
-                let store = try TrackerCategoryStore() // ⚠️ если init может бросить ошибку
+                let store = try TrackerCategoryStore()
                 let categoryVC = CategoryListViewController(
                     selectedCategory: options[indexPath.row].detail,
                     store: store
@@ -427,21 +383,19 @@ extension HabbitRegisterViewController: UITableViewDelegate {
                     self.selectedCategory = selectedName
                     self.options[indexPath.row].detail = selectedName
                     self.scheduleOrCategoryTableView.reloadRows(at: [indexPath], with: .automatic)
-                    self.updateCreateButtonState()
                 }
                 navigationController?.pushViewController(categoryVC, animated: true)
             } catch {
                 print("❌ Ошибка инициализации TrackerCategoryStore: \(error)")
             }
-
+            
         case 1:
-            print("Открыть экран расписания")
             let vc = ScheduleViewController()
             vc.delegate = self
             vc.mainIndex = indexPath.row
             
             if let saved = options[indexPath.row].selectedDays {
-                vc.selectedDays = Set(saved) // преобразуем Array -> Set
+                vc.selectedDays = Set(saved)
             } else {
                 vc.selectedDays = []
             }
@@ -465,25 +419,19 @@ extension HabbitRegisterViewController: UITableViewDelegate {
 }
 
 // MARK: - ScheduleDelegate
-
-extension HabbitRegisterViewController: ScheduleViewControllerDelegate {
+extension HabitEditViewController: ScheduleViewControllerDelegate {
     func scheduleViewController(_ vc: ScheduleViewController, didselect days: [Weekdays], atIndex index: Int?) {
         guard let idx = index else { return }
         options[idx].selectedDays = days
         selectedDays = days
         options[idx].detail = days.map { $0.short }.joined(separator: ", ")
         scheduleOrCategoryTableView.reloadRows(at: [IndexPath(row: idx, section: 0)], with: .automatic)
-        
-        updateCreateButtonState()
     }
 }
 
 // MARK: - UITextFieldDelegate
-extension HabbitRegisterViewController: UITextFieldDelegate {
+extension HabitEditViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        // Скрываем клавиатуру при нажатии на кнопку "Готово"
-        
-        
         textField.resignFirstResponder()
         return true
     }
@@ -493,25 +441,15 @@ extension HabbitRegisterViewController: UITextFieldDelegate {
                    replacementString string: String) -> Bool {
         guard let currentText = textField.text as NSString? else { return true }
         let newText = currentText.replacingCharacters(in: range, with: string)
-        
-        let maxLength: Int = 38
-        
-        if newText.count > maxLength {
-            warningLabel.isHidden = false
-            
-        } else {
-            warningLabel.isHidden = true
-        }
-        
-        return newText.count <= maxLength
+        return newText.count <= 38
     }
 }
 
-
 // MARK: - UICollectionViewDataSource
-extension HabbitRegisterViewController : UICollectionViewDataSource {
-    
-    
+extension HabitEditViewController: UICollectionViewDataSource {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 2
+    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if section == 0 {
@@ -521,77 +459,61 @@ extension HabbitRegisterViewController : UICollectionViewDataSource {
         }
     }
     
-    
-    
-    
-
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCreateCell", for: indexPath) as? TrackerCreateCell else { return UICollectionViewCell()}
         
         if indexPath.section == 0 {
-            cell.config(type: .image, name : emojiSet[indexPath.row] )
+            cell.config(type: .image, name: emojiSet[indexPath.row])
+            if indexPath == selectedEmojiIndexPath {
+                cell.select()
+            }
         } else {
-            cell.config(type: .color, name : colors[indexPath.row] )
+            cell.config(type: .color, name: colors[indexPath.row])
+            if indexPath == selectedColorIndexPath {
+                cell.select()
+            }
         }
         
         return cell
     }
-    
-    
 }
 
 // MARK: - UICollectionViewDelegate
-extension HabbitRegisterViewController: UICollectionViewDelegate {
+extension HabitEditViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
         if indexPath.section == 0 {
-            // Emoji секция
             if let previous = selectedEmojiIndexPath {
-                // Снимаем выделение с предыдущего emoji
                 if let cell = collectionView.cellForItem(at: previous) as? TrackerCreateCell {
                     cell.deselect()
                 }
             }
-            // Выделяем новый emoji
             if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCreateCell {
                 cell.select()
             }
             selectedEmojiIndexPath = indexPath
-            
         } else if indexPath.section == 1 {
-            // Цвета секция
             if let previous = selectedColorIndexPath {
-                // Снимаем выделение с предыдущего цвета
                 if let cell = collectionView.cellForItem(at: previous) as? TrackerCreateCell {
                     cell.deselect()
                 }
             }
-            // Выделяем новый цвет
             if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCreateCell {
                 cell.select()
             }
             selectedColorIndexPath = indexPath
         }
-        updateCreateButtonState()
     }
-    
-
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
-extension HabbitRegisterViewController: UICollectionViewDelegateFlowLayout {
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 2 // секция 0 = Emoji, секция 1 = Цвета
-    }
-    
+extension HabitEditViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
         
         guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
-                                                                     withReuseIdentifier: "Header",
+                                                                           withReuseIdentifier: "Header",
                                                                            for: indexPath) as? SectionHeader else {
             return UICollectionReusableView()
         }
@@ -601,17 +523,13 @@ extension HabbitRegisterViewController: UICollectionViewDelegateFlowLayout {
         header.label.text = indexPath.section == 0 ? emoji : colors
         return header
     }
-
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
-        // верни ноль, если заголовок не нужен; сейчас вернём высоту 44
         return CGSize(width: collectionView.bounds.width, height: 32)
     }
     
-    
-
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -630,15 +548,12 @@ extension HabbitRegisterViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 0 // ячейка строго под ячейкой
+        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 5 // отступ между ячейками по горизонтали
+        return 5
     }
 }
-
-
-

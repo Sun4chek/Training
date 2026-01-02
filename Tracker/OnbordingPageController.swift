@@ -18,14 +18,19 @@ final class OnboardingViewController: UIPageViewController,
     }
     
     lazy var pages: [UIViewController] = {
+        
+        let on1 = NSLocalizedString("onbording1", comment: "")
+        let on2 = NSLocalizedString("onbording2", comment: "")
+        
+        
         let first = createPageViewController(
             with: "onbordingFirst",
-            text: "Отслеживайте только то, что хотите"
+            text: on1
         )
 
         let second = createPageViewController(
             with: "onbordingSecond",
-            text: "Даже если это не литры воды и йога"
+            text: on2
         )
 
         return [first, second]
@@ -45,7 +50,8 @@ final class OnboardingViewController: UIPageViewController,
 
     private lazy var nextButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Вот это технологии!", for: .normal)
+        let niceTechnology = NSLocalizedString("niceTechnology", comment: "")
+        button.setTitle(niceTechnology, for: .normal)
         button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
         button.backgroundColor = UIColor(resource: .ypBlack)
         button.setTitleColor(.white, for: .normal)

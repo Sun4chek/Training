@@ -26,9 +26,12 @@ final class CategoryListViewController: UIViewController {
         return table
     }()
     
+    
+  
     private lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Добавить категорию", for: .normal)
+        let addCategory = NSLocalizedString("addCategory", comment: "")
+        button.setTitle(addCategory, for: .normal)
         button.backgroundColor = .ypBlack
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 16
@@ -37,6 +40,9 @@ final class CategoryListViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+    
+    
     
     // MARK: - Init
     init(selectedCategory: String? = nil, store: TrackerCategoryStore) {
@@ -48,10 +54,14 @@ final class CategoryListViewController: UIViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     // MARK: - Lifecycle
+    
+   
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        let category = NSLocalizedString("category", comment: "")
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Категории"
+        navigationItem.title = category
         navigationItem.hidesBackButton = true
         setupUI()
         setupBindings()
@@ -97,6 +107,8 @@ final class CategoryListViewController: UIViewController {
 }
 
 // MARK: - UITableViewDataSource
+
+
 extension CategoryListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return options.count

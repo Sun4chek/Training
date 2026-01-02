@@ -1,10 +1,3 @@
-//
-//  CreateNewHabbit.swift
-//  Tracker
-//
-//  Created by Волошин Александр on 9/8/25.
-//
-
 import UIKit
 
 class CreateNewHabbitViewController: UIViewController {
@@ -13,7 +6,8 @@ class CreateNewHabbitViewController: UIViewController {
     
     private lazy var habbitButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Привычка", for: .normal)
+        let habbit = NSLocalizedString("Habbit", comment: "")
+        button.setTitle(habbit, for: .normal)
         button.titleLabel?.font = UIFont(name: "SFProText-Medium", size: 16)
         button.backgroundColor = UIColor(named : "ypBlack")
         button.tintColor = .white
@@ -22,19 +16,16 @@ class CreateNewHabbitViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
-    
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Создание трекера"
+        let createTracker = NSLocalizedString("createTracker", comment: "")
+        navigationItem.title = createTracker
         
         setupUI()
     }
-    
-    
-    
+
     func setupUI() {
         
         view.addSubview(habbitButton)
@@ -51,7 +42,5 @@ class CreateNewHabbitViewController: UIViewController {
         let createHabitVC = HabbitRegisterViewController()
         createHabitVC.delegate = self.delegate
                 navigationController?.pushViewController(createHabitVC, animated: true)
-        
-
     }
 }

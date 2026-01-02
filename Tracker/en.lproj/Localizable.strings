@@ -1,0 +1,47 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Волошин Александр on 10/21/25.
+  
+*/
+"addCategory" = "Add category";
+"category" = "Categories";
+"mainCategory" = "Category";
+"schedule" = "Schedule";
+"maxLenth" = "38 character limit";
+"trackerName" = "Enter tracker name";
+"cancel" = "Cancel";
+"create" = "Create";
+"newHabbit" = "New Habbit";
+"Emoji" = "Emoji";
+"colors" = "Colors";
+"categoryName" = "Enter category name";
+"OK" = "OK";
+"New Category" = "New category";
+"trackers" = "Trackers";
+"search" = "Search";
+"whatTrack" = "What will we track?";
+"Habbit" = "Habbit";
+"createTracker" = "Create tracker";
+"onbording1" = "Track only what you want";
+"onbording2" = "Even if it's not liters of water and yoga";
+"niceTechnology" = "Nice Technology!";
+"statistic" = "Statistic";
+"delete" = "Delete";
+"edit" = "Edit";
+"deleteAlertTitle" = "Delete tracker?";
+"deleteAlertMessage" = "Are you sure you want to delete this tracker? This action cannot be undone.";
+"deleteYes" = "Delete";
+"save" = "Save";
+"editHabbit" = "Edit Habbit";
+"filters" = "Filters";
+"nothingTrack" = "Find Nothing";
+"statistics.placeholder.empty" =  "Nothing to analyze yet";
+"statistics.best_period_label" = "Best period";
+"statistics.ideal_days_label" = "Ideal days";
+"statistics.completed_trackers_label" = "Trackers completed";
+"statistics.average_label" = "Average value";
+"statistics.title" = "Statistics";
+
+
